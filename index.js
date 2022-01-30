@@ -1,10 +1,19 @@
+require("dotenv").config();
+const ExFunc = require("./exaroton.js");
+const { channel } = require("diagnostics_channel");
 const Discord = require("discord.js");
+const Exaroton = require("exaroton");
 const fs = require("fs");
 
+// discord stuff
 const prefix = process.env.DJS_PREFIX;
-
 const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES] });
 client.commands = new Discord.Collection();
+
+// exaroton stuff
+const { ExClient } = require("exaroton");
+const exClient = new Exaroton.Client(process.env.EXAROTON_TOKEN);
+let gcServer = exClient.server(process.env.EXAROTON_SERVER_ID);
 
 // Take commands
 const commandFiles = fs.readdirSync("./commands").filter((file) => file.endsWith(".js"));
@@ -18,13 +27,14 @@ const cooldowns = new Discord.Collection();
 
 // On Ready
 client.once("ready", () => {
-	console.log("Ready!");
+	console.log("Baking successful!");
 });
 
 // On Message
 client.on("messageCreate", (message) => {
 	if (message.content === "hej") {
 		message.channel.send("hou");
+		return;
 	}
 
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
@@ -53,34 +63,19 @@ client.on("messageCreate", (message) => {
 		return message.channel.send(reply);
 	}
 
-	// Check if user is in cooldown
-	if (!cooldowns.has(command.name)) {
-		cooldowns.set(command.name, new Discord.Collection());
+	// inject server if necessary
+	if (command.server === null) {
+		command.server = gcServer;
 	}
 
-	const now = Date.now();
-	const timestamps = cooldowns.get(command.name);
-	const cooldownAmount = (command.cooldown || 3) * 1000;
-
-	if (timestamps.has(message.author.id)) {
-		const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
-
-		if (now < expirationTime) {
-			// If user is in cooldown
-			const timeLeft = (expirationTime - now) / 1000;
-			return message.reply(`please wait ${timeLeft.toFixed(1)} more second(s) before reusing the \`${command.name}\` command.`);
-		}
-	} else {
-		timestamps.set(message.author.id, now);
-		setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-		// Execute command
-		try {
-			command.execute(message, args);
-		} catch (error) {
-			console.error(error);
-			message.reply("there was an error trying to execute that command!");
-		}
+	// execute command
+	try {
+		command.execute(message, args);
+	} catch (error) {
+		console.error(error);
+		console.log(server);
+		message.reply("there was an error trying to execute that command!");
 	}
 });
-console.log(typeof process.env.DJS_TOKEN);
+
 client.login(process.env.DJS_TOKEN);
