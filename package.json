@@ -1,18 +1,21 @@
 {
-  "name": "zemliak",
-  "version": "1.0.0",
-  "description": "Discord bot for the geometrykraft",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "Zemliak"
-  },
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "discord.js": "^13.6.0"
-  }
+	"name": "zemliak",
+	"version": "1.0.0",
+	"description": "Discord bot for the geometrykraft",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "Zemliak"
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"discord.js": "^13.6.0"
+	},
+	"engines": {
+		"node": "16.x"
+	}
 }
