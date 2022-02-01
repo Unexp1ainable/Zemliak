@@ -1,29 +1,34 @@
-require("dotenv").config();
-const ExFunc = require("./exaroton.js");
-const { channel } = require("diagnostics_channel");
-const Discord = require("discord.js");
-const Exaroton = require("exaroton");
-const fs = require("fs");
+import dotenv from "dotenv";
+import Discord from "discord.js";
+import Exaroton from "exaroton";
+import fs from "fs";
+import broadcastCommand from "./commands/broadcast.js";
+import hejCommand from "./commands/hej.js";
+import statusCommand from "./commands/status.js";
+import startCommand from "./commands/start.js";
+import stopCommand from "./commands/stop.js";
+import restartCommand from "./commands/restart.js";
+import helpCommand from "./commands/help.js";
+
+// load .env
+dotenv.config();
 
 // discord stuff
 const prefix = process.env.DJS_PREFIX;
 const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES] });
 client.commands = new Discord.Collection();
 
-// exaroton stuff
-const { ExClient } = require("exaroton");
-const exClient = new Exaroton.Client(process.env.EXAROTON_TOKEN);
-let gcServer = exClient.server(process.env.EXAROTON_SERVER_ID);
-
-// Take commands
-const commandFiles = fs.readdirSync("./commands").filter((file) => file.endsWith(".js"));
-for (const file of commandFiles) {
-	const command = require(`./commands/` + file);
-	client.commands.set(command.name, command);
+// register Discord commands
+let commands = [broadcastCommand, hejCommand, statusCommand, startCommand, restartCommand, stopCommand, helpCommand];
+for (const command of commands) {
+	client.commands.set(command.command.name, command.command);
 }
 
-// Cooldowns
-const cooldowns = new Discord.Collection();
+// exaroton stuff
+const exClient = new Exaroton.Client(process.env.EXAROTON_TOKEN);
+let gcServer = await exClient.server(process.env.EXAROTON_SERVER_ID).get();
+
+gcServer.subscribe();
 
 // On Ready
 client.once("ready", () => {
@@ -32,7 +37,7 @@ client.once("ready", () => {
 
 // On Message
 client.on("messageCreate", (message) => {
-	if (message.content === "hej") {
+	if (message.content === "hej" || message.content === "hej") {
 		message.channel.send("hou");
 		return;
 	}

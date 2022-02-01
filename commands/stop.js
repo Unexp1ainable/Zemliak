@@ -1,13 +1,13 @@
 let command = {
-	name: "broadcast",
+	name: "stop",
 	aliases: [],
-	description: "Send message to the server chat",
+	description: "Stop server",
 	category: "category",
 	guildOnly: false,
 	memberpermissions: "VIEW_CHANNEL",
 	adminPermOverride: true,
 	cooldown: 2,
-	usage: "<message>",
+	usage: "",
 	server: null,
 	async execute(message, args) {
 		let str = "";
@@ -15,8 +15,12 @@ let command = {
 			str += arg + " ";
 		}
 
+		if (this.server.status !== 1) {
+			message.reply("Server is not online!");
+			return;
+		}
 		await this.server
-			.executeCommand("say " + str)
+			.stop()
 			.then((result) => {
 				message.reply("Success");
 			})

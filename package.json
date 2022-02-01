@@ -2,6 +2,7 @@
 	"name": "zemliak",
 	"version": "1.0.0",
 	"description": "Discord bot for the geometrykraft",
+	"type": "module",
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"

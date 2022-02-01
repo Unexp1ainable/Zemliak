@@ -1,4 +1,4 @@
-module.exports = {
+let command = {
 	name: "hej",
 	aliases: [],
 	description: "hou",
@@ -12,3 +12,5 @@ module.exports = {
 		message.reply("hou");
 	},
 };
+
+export default { command };
