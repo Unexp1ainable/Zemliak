@@ -18,7 +18,7 @@ let command = {
 		await this.server
 			.executeCommand("say " + str)
 			.then((result) => {
-				message.reply("Success");
+				message.react("👍");
 			})
 			.catch((e) => {
 				message.reply("Failed\nReason: " + e.message);

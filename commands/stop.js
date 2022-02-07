@@ -22,7 +22,7 @@ let command = {
 		await this.server
 			.stop()
 			.then((result) => {
-				message.reply("Success");
+				message.react("👍");
 			})
 			.catch((e) => {
 				message.reply("Failed\nReason: " + e.message);
