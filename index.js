@@ -1,7 +1,9 @@
 import dotenv from "dotenv";
 import Discord from "discord.js";
 import Exaroton from "exaroton";
-import fs from "fs";
+import Prisma from "@prisma/client";
+const { PrismaClient } = Prisma;
+
 import broadcastCommand from "./commands/broadcast.js";
 import hejCommand from "./commands/hej.js";
 import statusCommand from "./commands/status.js";
@@ -9,9 +11,13 @@ import startCommand from "./commands/start.js";
 import stopCommand from "./commands/stop.js";
 import restartCommand from "./commands/restart.js";
 import helpCommand from "./commands/help.js";
+import addUserCommand from "./commands/addUser.js";
 
 // load .env
 dotenv.config();
+
+// connect to the database
+const prisma = new PrismaClient();
 
 // discord stuff
 const prefix = process.env.DJS_PREFIX;
@@ -19,7 +25,7 @@ const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Disc
 client.commands = new Discord.Collection();
 
 // register Discord commands
-let commands = [broadcastCommand, hejCommand, statusCommand, startCommand, restartCommand, stopCommand, helpCommand];
+let commands = [broadcastCommand, hejCommand, statusCommand, startCommand, restartCommand, stopCommand, helpCommand, addUserCommand];
 for (const command of commands) {
 	client.commands.set(command.command.name, command.command);
 }
@@ -36,7 +42,7 @@ client.once("ready", () => {
 });
 
 // On Message
-client.on("messageCreate", (message) => {
+client.on("messageCreate", async (message) => {
 	if (message.content === "hej" || message.content === "hej") {
 		message.channel.send("hou");
 		return;
@@ -68,14 +74,13 @@ client.on("messageCreate", (message) => {
 		return message.channel.send(reply);
 	}
 
-	// inject server if necessary
-	if (command.server === null) {
-		command.server = gcServer;
-	}
+	// inject dependencies
+	command.server = gcServer;
+	command.prisma = prisma;
 
 	// execute command
 	try {
-		command.execute(message, args);
+		command.execute(message, args, prisma);
 	} catch (error) {
 		console.error(error);
 		console.log(server);

@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  online    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  logonTime DateTime?  @default(now())
+  Log       Log[]
+  Playtime  Playtime[]
+}
+
+model Log {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  content   String   @db.VarChar(255)
+  author    Player?  @relation(fields: [authorId], references: [id])
+  authorId  Int?
+}
+
+model Playtime {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  length    Int      @default(0)
+  player    Player   @relation(fields: [playerId], references: [id])
+  playerId  Int
+}
