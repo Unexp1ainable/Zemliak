@@ -1,3 +1,6 @@
+import ss from "../serverStatus.js";
+const { statusToRichString, serverStatus } = ss;
+
 let command = {
 	name: "status",
 	aliases: [],
@@ -9,45 +12,9 @@ let command = {
 	usage: "",
 	server: null,
 	async execute(message, args) {
-		let status = "";
-		switch (this.server.status) {
-			case 0:
-				status = "⚫ Offline";
-				break;
-			case 1:
-				status = "🟢 Online";
-				break;
-			case 2:
-				status = "🔵 Starting";
-				break;
-			case 3:
-				status = "🔴 Stopping";
-				break;
-			case 4:
-				status = "🔴 Restarting";
-				break;
-			case 5:
-				status = "🔵 Saving";
-				break;
-			case 6:
-				status = "🔵 Loading";
-				break;
-			case 7:
-				status = "🔴 Crashed";
-				break;
-			case 8:
-				status = "⚫ Pending";
-				break;
-			case 10:
-				status = "🔵 Preparing";
-				break;
+		let status = statusToRichString(this.server.status);
 
-			default:
-				status = "⚫ Unknown";
-				break;
-		}
-
-		if (this.server.status === 1) {
+		if (this.server.status === serverStatus.ONLINE) {
 			let players = {};
 			players.name = "Players";
 			players.value = "";

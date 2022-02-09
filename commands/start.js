@@ -8,6 +8,7 @@ let command = {
 	adminPermOverride: true,
 	cooldown: 2,
 	usage: "",
+	log: true,
 	server: null,
 	async execute(message, args) {
 		let str = "";

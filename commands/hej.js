@@ -8,6 +8,7 @@ let command = {
 	adminPermOverride: true,
 	cooldown: 2,
 	usage: "<usage>",
+	log: true,
 	execute(message) {
 		message.reply("hou");
 	},

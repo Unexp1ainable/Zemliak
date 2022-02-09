@@ -1,5 +1,5 @@
 let command = {
-	name: "adduser",
+	name: "log",
 	aliases: [],
 	description: "",
 	category: "category",
@@ -11,12 +11,12 @@ let command = {
 	async execute(message) {
 		try {
 			message.reply("hou");
-			await this.prisma.player.create({
+			await this.prisma.log.create({
 				data: {
-					name: message.content,
+					content: message.content,
 				},
 			});
-			console.log(await this.prisma.player.findMany());
+			console.log(await this.prisma.log.findMany());
 		} catch (error) {
 			console.log(error);
 		}
