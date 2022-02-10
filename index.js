@@ -127,7 +127,7 @@ exServer.on("status", async function (server) {
 			// create player as online if it doesnt exist
 			if (!p) {
 				prisma.player
-					.insert({
+					.create({
 						data: {
 							name: player,
 							logonTime: new Date(),
