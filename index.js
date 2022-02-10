@@ -126,7 +126,7 @@ exServer.on("status", async function (server) {
 
 			// create player as online if it doesnt exist
 			if (!p) {
-				prisma.player
+				await prisma.player
 					.create({
 						data: {
 							name: player,
