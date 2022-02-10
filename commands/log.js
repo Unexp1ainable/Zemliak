@@ -16,7 +16,6 @@ let command = {
 					content: message.content,
 				},
 			});
-			console.log(await this.prisma.log.findMany());
 		} catch (error) {
 			console.log(error);
 		}

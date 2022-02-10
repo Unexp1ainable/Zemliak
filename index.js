@@ -15,7 +15,6 @@ import startCommand from "./commands/start.js";
 import stopCommand from "./commands/stop.js";
 import restartCommand from "./commands/restart.js";
 import helpCommand from "./commands/help.js";
-import addUserCommand from "./commands/addUser.js";
 import logCommand from "./commands/log.js";
 
 // load .env
@@ -30,7 +29,7 @@ const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Disc
 client.commands = new Discord.Collection();
 
 // register Discord commands
-let commands = [broadcastCommand, hejCommand, statusCommand, startCommand, restartCommand, stopCommand, helpCommand, addUserCommand, logCommand];
+let commands = [broadcastCommand, hejCommand, statusCommand, startCommand, restartCommand, stopCommand, helpCommand, logCommand];
 for (const command of commands) {
 	client.commands.set(command.command.name, command.command);
 }
@@ -109,7 +108,7 @@ exServer.on("status", async function (server) {
 		});
 	}
 	executing = true;
-	console.log(server);
+
 	if (currentExServerStatus !== server.status) {
 		db.log(prisma, "Server changed status from " + statusToString(currentExServerStatus) + " to " + statusToString(server.status) + ".");
 		currentExServerStatus = server.status;
@@ -152,11 +151,9 @@ exServer.on("status", async function (server) {
 								logonTime: new Date(),
 							},
 						})
-						.then((result) => {
-							console.log(result);
-						})
+						.then((result) => {})
 						.catch((err) => {
-							console.log(err);
+							console.log("player upadte failed!", err);
 						});
 				}
 			}
