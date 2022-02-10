@@ -141,7 +141,7 @@ exServer.on("status", async function (server) {
 			} else {
 				// if player was found but is offline, update it to online
 				if (!p.online) {
-					prisma.player
+					await prisma.player
 						.update({
 							where: {
 								id: p.id,
