@@ -1,15 +1,20 @@
-let command = {
+const { SlashCommandBuilder } = require("@discordjs/builders");
+
+module.exports = {
 	name: "help",
 	aliases: [],
-	description: "Message avaliable commands",
-	category: "category",
-	guildOnly: false,
-	memberpermissions: "VIEW_CHANNEL",
-	adminPermOverride: true,
-	cooldown: 2,
-	usage: "",
-	execute(message) {
-		message.reply({
+	description: "List avaliable commands",
+
+	buildCommand() {
+		return new SlashCommandBuilder()
+			.setName(this.name)
+			.setDescription(this.description)
+			.addBooleanOption((option) => option.setName("haňbim_še").setDescription("Reply just to you.").setRequired(false));
+	},
+
+	execute(interaction) {
+		const eph = interaction.options.getBoolean("haňbim_še");
+		interaction.reply({
 			embeds: [
 				{
 					type: "rich",
@@ -40,8 +45,8 @@ let command = {
 					],
 				},
 			],
+
+			ephemeral: eph,
 		});
 	},
 };
-
-export default { command };

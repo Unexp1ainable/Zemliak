@@ -93,8 +93,4 @@ function statusToRichString(status) {
 	return statStr;
 }
 
-export default {
-	serverStatus,
-	statusToString,
-	statusToRichString,
-};
+module.exports = { serverStatus, statusToRichString, statusToString };

@@ -1,17 +1,15 @@
-let command = {
+const { SlashCommandBuilder } = require("@discordjs/builders");
+
+module.exports = {
 	name: "hej",
 	aliases: [],
 	description: "hou",
-	category: "category",
-	guildOnly: false,
-	memberpermissions: "VIEW_CHANNEL",
-	adminPermOverride: true,
-	cooldown: 2,
-	usage: "<usage>",
-	log: true,
-	execute(message) {
-		message.reply("hou");
+
+	buildCommand() {
+		return new SlashCommandBuilder().setName(this.name).setDescription(this.description);
+	},
+
+	execute(interaction) {
+		interaction.reply("hou");
 	},
 };
-
-export default { command };

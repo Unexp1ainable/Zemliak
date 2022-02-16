@@ -1,18 +1,24 @@
-import ss from "../serverStatus.js";
-const { statusToRichString, serverStatus } = ss;
+const { statusToRichString, serverStatus } = require("../serverStatus.js");
 
-let command = {
+const { SlashCommandBuilder } = require("@discordjs/builders");
+
+module.exports = {
 	name: "status",
 	aliases: [],
 	description: "Print server status",
-	category: "category",
-	guildOnly: false,
-	memberpermissions: "VIEW_CHANNEL",
-	adminPermOverride: true,
-	usage: "",
-	server: null,
-	async execute(message, args) {
+
+	buildCommand() {
+		return new SlashCommandBuilder().setName(this.name).setDescription(this.description);
+	},
+
+	async execute(interaction, ctx) {
 		let status = statusToRichString(this.server.status);
+		let fields = [
+			{
+				name: "Status",
+				value: status,
+			},
+		];
 
 		if (this.server.status === serverStatus.ONLINE) {
 			let players = {};
@@ -25,42 +31,18 @@ let command = {
 				players.value = "Nobody ):";
 			}
 
-			message.channel.send({
-				embeds: [
-					{
-						type: "rich",
-						title: `Server info`,
-						description: "",
-						color: 0x00ffff,
-						fields: [
-							{
-								name: "Status",
-								value: status,
-							},
-							players,
-						],
-					},
-				],
-			});
-		} else {
-			message.channel.send({
-				embeds: [
-					{
-						type: "rich",
-						title: `Server info`,
-						description: "",
-						color: 0x00ffff,
-						fields: [
-							{
-								name: "Status",
-								value: status,
-							},
-						],
-					},
-				],
-			});
+			fields.push(players);
 		}
+		interaction.reply({
+			embeds: [
+				{
+					type: "rich",
+					title: `Server info`,
+					description: "",
+					color: 0x00ffff,
+					fields: fields,
+				},
+			],
+		});
 	},
 };
-
-export default { command };

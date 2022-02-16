@@ -1,35 +1,29 @@
-let command = {
+const { SlashCommandBuilder } = require("@discordjs/builders");
+const { serverStatus } = require("../serverStatus");
+
+module.exports = {
 	name: "stop",
 	aliases: [],
 	description: "Stop server",
-	category: "category",
-	guildOnly: false,
-	memberpermissions: "VIEW_CHANNEL",
-	adminPermOverride: true,
-	cooldown: 2,
-	usage: "",
 	log: true,
-	server: null,
-	async execute(message, args) {
-		let str = "";
-		for (let arg of args) {
-			str += arg + " ";
-		}
 
-		if (this.server.status !== 1) {
-			message.reply("Server is not online!");
+	buildCommand() {
+		return new SlashCommandBuilder().setName(this.name).setDescription(this.description);
+	},
+
+	async execute(interaction, ctx) {
+		if (ctx.server.status !== serverStatus.ONLINE) {
+			interaction.reply("Server is not online!");
 			return;
 		}
-		await this.server
+		await ctx.server
 			.stop()
 			.then((result) => {
-				message.react("👍");
+				interaction.reply("Stopping");
 			})
 			.catch((e) => {
-				message.reply("Failed\nReason: " + e.message);
+				interaction.reply("Failed\nReason: " + e.message);
 				console.error(e.message);
 			});
 	},
 };
-
-export default { command };

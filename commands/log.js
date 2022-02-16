@@ -1,25 +1,30 @@
-let command = {
+const { SlashCommandBuilder } = require("@discordjs/builders");
+
+module.exports = {
 	name: "log",
 	aliases: [],
-	description: "",
-	category: "category",
-	guildOnly: false,
-	memberpermissions: "VIEW_CHANNEL",
-	adminPermOverride: true,
-	cooldown: 2,
-	usage: "<usage>",
-	async execute(message) {
+	description: "Log something to the database",
+
+	buildCommand() {
+		return new SlashCommandBuilder()
+			.setName(this.name)
+			.setDescription(this.description)
+			.addStringOption((option) => option.setName("msg").setDescription("Message to be logged."));
+	},
+
+	async execute(interaction, ctx) {
+		const msg = interaction.options.getString("msg");
+
 		try {
-			message.reply("hou");
-			await this.prisma.log.create({
+			await ctx.prisma.log.create({
 				data: {
-					content: message.content,
+					content: msg,
 				},
 			});
+			interaction.reply("Logged");
 		} catch (error) {
 			console.log(error);
+			interaction.reply("Failed: " + error);
 		}
 	},
 };
-
-export default { command };

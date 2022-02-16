@@ -1,30 +1,28 @@
-let command = {
+const { SlashCommandBuilder } = require("@discordjs/builders");
+
+module.exports = {
 	name: "broadcast",
 	aliases: [],
 	description: "Send message to the server chat",
-	category: "category",
-	guildOnly: false,
-	memberpermissions: "VIEW_CHANNEL",
-	adminPermOverride: true,
-	cooldown: 2,
-	usage: "<message>",
-	server: null,
-	async execute(message, args) {
-		let str = "";
-		for (let arg of args) {
-			str += arg + " ";
-		}
 
-		await this.server
-			.executeCommand("say " + str)
+	buildCommand() {
+		return new SlashCommandBuilder()
+			.setName(this.name)
+			.setDescription(this.description)
+			.addStringOption((option) => option.setName("msg").setDescription("Message to be broadcasted to the server."));
+	},
+
+	async execute(interaction, ctx) {
+		const msg = interaction.options.getString("msg");
+
+		await ctx.server
+			.executeCommand("say " + msg)
 			.then((result) => {
-				message.react("👍");
+				interaction.reply("Done");
 			})
 			.catch((e) => {
-				message.reply("Failed\nReason: " + e.message);
+				interaction.reply("Failed\nReason: " + e.message);
 				console.error(e.message);
 			});
 	},
 };
-
-export default { command };

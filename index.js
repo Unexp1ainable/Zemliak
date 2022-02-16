@@ -1,21 +1,15 @@
-import dotenv from "dotenv";
-import Discord from "discord.js";
-import Exaroton from "exaroton";
-import Prisma from "@prisma/client";
-const { PrismaClient } = Prisma;
+const dotenv = require("dotenv");
+const Discord = require("discord.js");
+const Exaroton = require("exaroton");
+const { PrismaClient } = require("@prisma/client");
+const fs = require("fs");
 
-import ss from "./serverStatus.js";
-const { statusToString, serverStatus } = ss;
-import db from "./database.js";
+const { REST } = require("@discordjs/rest");
+const { Routes } = require("discord-api-types/v9");
+const { SlashCommandBuilder } = require("@discordjs/builders");
 
-import broadcastCommand from "./commands/broadcast.js";
-import hejCommand from "./commands/hej.js";
-import statusCommand from "./commands/status.js";
-import startCommand from "./commands/start.js";
-import stopCommand from "./commands/stop.js";
-import restartCommand from "./commands/restart.js";
-import helpCommand from "./commands/help.js";
-import logCommand from "./commands/log.js";
+const { statusToString, serverStatus } = require("./serverStatus.js");
+const db = require("./database.js");
 
 // load .env
 dotenv.config();
@@ -28,18 +22,34 @@ const prefix = process.env.DJS_PREFIX;
 const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES] });
 client.commands = new Discord.Collection();
 
-// register Discord commands
-let commands = [broadcastCommand, hejCommand, statusCommand, startCommand, restartCommand, stopCommand, helpCommand, logCommand];
-for (const command of commands) {
-	client.commands.set(command.command.name, command.command);
+// prepare and register Discord commands
+toRegister = [];
+const commandFiles = fs.readdirSync("./commands").filter((file) => file.endsWith(".js"));
+for (const file of commandFiles) {
+	const command = require(`./commands/` + file);
+	client.commands.set(command.name, command);
+	toRegister.push(command.buildCommand());
 }
+toRegister.push(new SlashCommandBuilder().setName("ping").setDescription("Replies with pong!"));
+toRegister.map((command) => command.toJSON());
+const rest = new REST({ version: "9" }).setToken(process.env.DJS_TOKEN);
+rest.put(Routes.applicationGuildCommands(process.env.DJS_CLIENT, process.env.DJS_GUILD), { body: toRegister })
+	.then(() => console.log("Successfully registered application commands."))
+	.catch(console.error);
 
 // exaroton stuff
 const exClient = new Exaroton.Client(process.env.EXAROTON_TOKEN);
-let exServer = await exClient.server(process.env.EXAROTON_SERVER_ID).get();
+let exServer = exClient.server(process.env.EXAROTON_SERVER_ID);
+exServer.get();
 let currentExServerStatus = serverStatus.OFFLINE;
-
 exServer.subscribe();
+
+// create server context
+const ctx = {
+	server: exServer,
+	prisma: prisma,
+	startRequest: null,
+};
 
 // On Ready
 client.once("ready", () => {
@@ -52,48 +62,20 @@ client.on("messageCreate", async (message) => {
 		message.channel.send("hou");
 		return;
 	}
+});
 
-	if (!message.content.startsWith(prefix) || message.author.bot) return;
+client.on("interactionCreate", async (interaction) => {
+	if (!interaction.isCommand()) return;
+	if (interaction.commandName === "ping") {
+		interaction.reply("Pong!");
+		return;
+	}
 
-	const args = message.content.slice(prefix.length).split(/ +/);
-	const commandName = args.shift().toLowerCase();
-
+	const commandName = interaction.commandName;
 	const command = client.commands.get(commandName) || client.commands.find((cmd) => cmd.aliases && cmd.aliases.includes(commandName));
-
-	// If command exist
 	if (!command) return;
 
-	// Check if command can be executed in DM
-	if (command.guildOnly && message.channel.type !== "text") {
-		return message.reply("I can't execute that command inside DMs!");
-	}
-
-	// Check if args are required
-	if (command.args && !args.length) {
-		let reply = `You didn't provide any arguments, ${message.author}!`;
-
-		if (command.usage) {
-			reply += `\nThe proper usage would be: \`${prefix}${command.name} ${command.usage}\``;
-		}
-
-		return message.channel.send(reply);
-	}
-
-	// inject dependencies
-	command.server = exServer;
-	command.prisma = prisma;
-
-	// execute command
-	try {
-		command.execute(message, args, prisma);
-		if (command.log) {
-			db.log(prisma, message.author.username + " executed command " + command.name);
-		}
-	} catch (error) {
-		console.error(error);
-		console.log(server);
-		message.reply("there was an error trying to execute that command!");
-	}
+	command.execute(interaction, ctx);
 });
 
 // on server event
@@ -110,88 +92,21 @@ exServer.on("status", async function (server) {
 	executing = true;
 
 	if (currentExServerStatus !== server.status) {
-		db.log(prisma, "Server changed status from " + statusToString(currentExServerStatus) + " to " + statusToString(server.status) + ".");
+		db.log(prisma, statusToString(currentExServerStatus) + " => " + statusToString(server.status));
 		currentExServerStatus = server.status;
+		if (server.status === serverStatus.ONLINE) {
+			if (ctx.startRequest) {
+				ctx.startRequest.followUp("Server is online!");
+				ctx.startRequest = null;
+			}
+		}
 	}
 
 	if (server.status === serverStatus.ONLINE) {
-		// update online players
-		for (let player of server.players.list) {
-			// find player if exists
-			let p = await prisma.player.findFirst({
-				where: {
-					name: player,
-				},
-			});
-
-			// create player as online if it doesnt exist
-			if (!p) {
-				await prisma.player
-					.create({
-						data: {
-							name: player,
-							logonTime: new Date(),
-							online: true,
-						},
-					})
-					.then((result) => {})
-					.catch((err) => {
-						console.log(err);
-					});
-			} else {
-				// if player was found but is offline, update it to online
-				if (!p.online) {
-					await prisma.player
-						.update({
-							where: {
-								id: p.id,
-							},
-							data: {
-								online: true,
-								logonTime: new Date(),
-							},
-						})
-						.then((result) => {})
-						.catch((err) => {
-							console.log("player upadte failed!", err);
-						});
-				}
-			}
-		}
-
-		// update offline players
-		let players = await prisma.player.findMany({
-			where: {
-				online: true,
-				name: {
-					notIn: server.players.list,
-				},
-			},
-		});
-
-		for (let player of players) {
-			// calculate playtime
-			let playtime = Math.round((new Date() - player.logonTime) / 1000);
-
-			// set playtime
-			let a = await prisma.playtime.create({
-				data: {
-					length: playtime,
-					playerId: player.id,
-				},
-			});
-
-			// set logonTime to null and online to false
-			let b = await prisma.player.update({
-				where: {
-					id: player.id,
-				},
-				data: {
-					online: false,
-					logonTime: null,
-				},
-			});
-		}
+		await db.updateOnlinePlayers(exServer, prisma);
+		await db.updateOfflinePlayers(exServer, prisma);
+	} else {
+		await db.updateOfflinePlayers(exServer, prisma);
 	}
 	executing = false;
 });
