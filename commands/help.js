@@ -42,6 +42,14 @@ module.exports = {
 							name: `/broadcast`,
 							value: `Send message to the server chat.`,
 						},
+						{
+							name: `/playerstats <player>`,
+							value: `Show statistics of the player.`,
+						},
+						{
+							name: `/players`,
+							value: `Show all registered players.`,
+						},
 					],
 				},
 			],

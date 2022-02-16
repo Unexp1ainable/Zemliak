@@ -12,7 +12,7 @@ module.exports = {
 	},
 
 	async execute(interaction, ctx) {
-		let status = statusToRichString(this.server.status);
+		let status = statusToRichString(ctx.server.status);
 		let fields = [
 			{
 				name: "Status",
@@ -20,11 +20,11 @@ module.exports = {
 			},
 		];
 
-		if (this.server.status === serverStatus.ONLINE) {
+		if (ctx.server.status === serverStatus.ONLINE) {
 			let players = {};
 			players.name = "Players";
 			players.value = "";
-			for (let p of this.server.players.list) {
+			for (let p of ctx.server.players.list) {
 				players.value += p + "\n";
 			}
 			if (players.value === "") {

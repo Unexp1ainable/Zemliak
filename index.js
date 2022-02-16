@@ -18,7 +18,6 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 // discord stuff
-const prefix = process.env.DJS_PREFIX;
 const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS, Discord.Intents.FLAGS.GUILD_MESSAGES] });
 client.commands = new Discord.Collection();
 
