@@ -12,7 +12,7 @@ module.exports = {
 
 	async execute(interaction, ctx) {
 		if (ctx.server.status !== serverStatus.ONLINE) {
-			message.reply("Server is not online!");
+			interaction.reply("Server is not online!");
 			return;
 		}
 		await ctx.server

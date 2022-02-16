@@ -22,7 +22,7 @@ module.exports = {
 		for (let player of players) {
 			body += player.name + "\n";
 		}
-		const embed = new Discord.MessageEmbed().setTitle("Players").setDescription("All players that was registered in the database.").setColor("#5cd41c");
+		const embed = new Discord.MessageEmbed().setTitle("Players").setDescription("All players that were registered in the database.").setColor("#5cd41c");
 
 		embed.addField("Minecraft names", body);
 		embed.setTimestamp();
