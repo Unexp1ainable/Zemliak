@@ -42,12 +42,15 @@ let exServer = exClient.server(process.env.EXAROTON_SERVER_ID);
 exServer.get();
 let currentExServerStatus = serverStatus.OFFLINE;
 exServer.subscribe();
+exServer.subscribe("console");
 
 // create server context
 const ctx = {
 	server: exServer,
 	prisma: prisma,
 	startRequest: null,
+	lastBroadcast: null,
+	lastBroadcastValidityPromise: null,
 };
 
 // On Ready
@@ -108,6 +111,36 @@ exServer.on("status", async function (server) {
 		await db.updateOfflinePlayers(exServer, prisma);
 	}
 	executing = false;
+});
+
+exServer.on("console:line", async function (data) {
+	const pattern = /\[.*\]: <.+> .+/gm;
+	const line = data.line;
+
+	if (line.match(pattern)) {
+		const who = line.replace(/\[.*</gm, "").replace(/>.*/gm, "");
+		const what = line.replace(/\[.*?>\s*/gm, "");
+
+		if (what.slice(0, 6) === "reply:") {
+			if (!ctx.lastBroadcast) {
+				await ctx.server
+					.executeCommand("say Žemliak: No message to reply to.")
+					.then()
+					.catch((e) => {
+						console.error(e.message);
+					});
+			} else {
+				ctx.lastBroadcast.followUp("**" + who + "**" + ": " + what.replace(/reply:/g, ""));
+			}
+		} else if (what.slice(0, 4) === "msg:") {
+			try {
+				const room = await client.channels.fetch(process.env.DJS_BOTROOM);
+				room.send("**" + who + "**" + ": " + what.replace(/msg:/g, ""));
+			} catch (error) {
+				console.log(error);
+			}
+		}
+	}
 });
 
 client.login(process.env.DJS_TOKEN);
