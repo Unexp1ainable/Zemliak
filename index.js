@@ -98,7 +98,7 @@ exServer.on("status", async function (server) {
 		currentExServerStatus = server.status;
 		if (server.status === serverStatus.ONLINE) {
 			if (ctx.startRequest) {
-				ctx.startRequest.followUp("Server is online!");
+				ctx.startRequest.followUp("Server is online!\nDynIp: " + ctx.server.host + ":" + ctx.server.port);
 				ctx.startRequest = null;
 			}
 		}
